@@ -1,0 +1,4 @@
+D:/VulkanProject/build/CMakeFiles/VulkanApp.dir
+D:/VulkanProject/build/CMakeFiles/Shaders.dir
+D:/VulkanProject/build/CMakeFiles/edit_cache.dir
+D:/VulkanProject/build/CMakeFiles/rebuild_cache.dir
