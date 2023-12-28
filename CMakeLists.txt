@@ -54,6 +54,21 @@ else()
     message(STATUS "Using glfw lib at: ${GLFW_LIB}")
 endif()
 
+if (DEFINED ASSIMP_PATH)
+    message(STATUS "Using ASSIMP path specified in .env")
+    set(ASSIMP_INCLUDE_DIRS "${ASSIMP_PATH}/include")
+    set(ASSIMP_LIB "${ASSIMP_PATH}/lib")
+else()
+    find_package(assimp REQUIRED)
+    message(STATUS "Found ASSIMP")
+endif()
+
+if (NOT ASSIMP_LIB)
+    message(FATAL_ERROR "Could not find assimp library!")
+else()
+    message(STATUS "Using assimp lib at: ${ASSIMP_LIB}")
+endif()
+
 #include_directories(external)
 #
 ## If TINYOBJ_PATH not specified in .env.cmake, try fetching from git repo
@@ -85,17 +100,22 @@ if (WIN32)
     target_include_directories(${PROJECT_NAME} PUBLIC
             ${PROJECT_SOURCE_DIR}/src
             ${Vulkan_INCLUDE_DIRS}
-            ${TINYOBJ_PATH}
             ${GLFW_INCLUDE_DIRS}
-            ${GLM_PATH}
+            ${ASSIMP_INCLUDE_DIRS}
     )
 
     target_link_directories(${PROJECT_NAME} PUBLIC
             ${Vulkan_LIBRARIES}
             ${GLFW_LIB}
+            ${ASSIMP_LIB}
     )
 
-    target_link_libraries(${PROJECT_NAME} glfw3 vulkan-1)
+    target_link_libraries(${PROJECT_NAME}
+            glfw3
+            vulkan-1
+            libassimp
+    )
+
 elseif (UNIX)
     message(STATUS "CREATING BUILD FOR UNIX")
     target_include_directories(${PROJECT_NAME} PUBLIC
