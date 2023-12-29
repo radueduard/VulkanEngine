@@ -64,6 +64,9 @@ namespace ve {
         cubeObject.transform.scale = glm::vec3(.5f);
 
         gameObjects.push_back(std::move(cubeObject));
+
+        auto models = Model::loadModelsFromFile(device, "models/apple.obj");
+
     }
 
     void World::update(float deltaTime) {

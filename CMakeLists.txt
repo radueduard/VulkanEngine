@@ -26,56 +26,12 @@ else()
     find_package(Vulkan REQUIRED) # throws error if could not find Vulkan
     message(STATUS "Found Vulkan: $ENV{VULKAN_SDK}")
 endif()
+
 if (NOT Vulkan_FOUND)
     message(FATAL_ERROR "Could not find Vulkan library!")
 else()
     message(STATUS "Using vulkan lib at: ${Vulkan_LIBRARIES}")
 endif()
-
-
-# 2. Set GLFW_PATH in .env.cmake to target specific glfw
-if (DEFINED GLFW_PATH)
-    message(STATUS "Using GLFW path specified in .env")
-    set(GLFW_INCLUDE_DIRS "${GLFW_PATH}/include")
-    if (MSVC)
-        set(GLFW_LIB "${GLFW_PATH}/lib-vc2019") # 2.1 Update lib-vc2019 to use same version as your visual studio
-    elseif (CMAKE_GENERATOR STREQUAL "MinGW Makefiles")
-        message(STATUS "USING MINGW")
-        set(GLFW_LIB "${GLFW_PATH}/lib-mingw-w64") # 2.1 make sure matches glfw mingw subdirectory
-    endif()
-else()
-    find_package(glfw3 3.3 REQUIRED)
-    set(GLFW_LIB glfw)
-    message(STATUS "Found GLFW")
-endif()
-if (NOT GLFW_LIB)
-    message(FATAL_ERROR "Could not find glfw library!")
-else()
-    message(STATUS "Using glfw lib at: ${GLFW_LIB}")
-endif()
-
-if (DEFINED ASSIMP_PATH)
-    message(STATUS "Using ASSIMP path specified in .env")
-    set(ASSIMP_INCLUDE_DIRS "${ASSIMP_PATH}/include")
-    set(ASSIMP_LIB "${ASSIMP_PATH}/lib")
-else()
-    find_package(assimp REQUIRED)
-    message(STATUS "Found ASSIMP")
-endif()
-
-if (NOT ASSIMP_LIB)
-    message(FATAL_ERROR "Could not find assimp library!")
-else()
-    message(STATUS "Using assimp lib at: ${ASSIMP_LIB}")
-endif()
-
-#include_directories(external)
-#
-## If TINYOBJ_PATH not specified in .env.cmake, try fetching from git repo
-#if (NOT TINYOBJ_PATH)
-#    message(STATUS "TINYOBJ_PATH not specified in .env.cmake, using external/tinyobjloader")
-#    set(TINYOBJ_PATH external/tinyobjloader)
-#endif()
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
@@ -120,7 +76,6 @@ elseif (UNIX)
     message(STATUS "CREATING BUILD FOR UNIX")
     target_include_directories(${PROJECT_NAME} PUBLIC
             ${PROJECT_SOURCE_DIR}/src
-            ${TINYOBJ_PATH}
     )
     target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
 endif()

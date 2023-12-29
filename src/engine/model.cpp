@@ -5,6 +5,9 @@
 #include "model.hpp"
 
 #include <cassert>
+#include <iostream>
+
+#include <assimp/Importer.hpp>
 
 namespace ve {
 
@@ -140,4 +143,25 @@ namespace ve {
 
         return attributeDescriptions;
     }
+
+    Model Model::Builder::build(Device &device) {
+        return Model(device, *this);
+    }
+
+    std::vector<Model> Model::loadModelsFromFile(Device &device, const std::string &filepath) {
+
+        Assimp::Importer importer = Assimp::Importer();
+//
+//        uint32_t flags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals;
+//
+//        const aiScene* scene = importer.ReadFile(filepath, flags);
+//
+//        std::cout << "Loaded model: " << filepath << std::endl;
+//        std::cout << "Number of meshes: " << scene->mMeshes << std::endl;
+
+        return std::vector<Model>();
+    }
+
+
+
 }

@@ -24,6 +24,8 @@ namespace ve {
         struct Builder {
             std::vector<Vertex> vertices{};
             std::vector<uint32_t> indices{};
+
+            Model build(Device& device);
         };
 
         Model(Device& device, const Model::Builder& builder);
@@ -33,6 +35,8 @@ namespace ve {
 
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer) const;
+
+        static std::vector<Model> loadModelsFromFile(Device& device, const std::string& filepath);
 
     private:
         void createVertexBuffers(const std::vector<Vertex>& vertices);
@@ -49,7 +53,5 @@ namespace ve {
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
         uint32_t indexCount;
-
-        bool loadModel(const std::string &filepath);
     };
 }
