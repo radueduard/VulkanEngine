@@ -23,13 +23,24 @@ namespace ve {
         return buffer;
     }
 
-    Pipeline::Pipeline(Device &device, const std::string &&vertFile, const std::string &&fragFile,
-                       const PipelineConfigInfo &configInfo) : device_(device) {
-        createGraphicsPipeline(std::move(vertFile), std::move(fragFile), configInfo);
+    Pipeline::Pipeline(
+		Device &device,
+		const std::string &&vertFile,
+		const std::string &&geomFile,
+		const std::string &&fragFile,
+		const PipelineConfigInfo &configInfo)
+	: device_(device) {
+
+        createGraphicsPipeline(
+				std::move(vertFile),
+				std::move(geomFile),
+				std::move(fragFile),
+				configInfo);
     }
 
     Pipeline::~Pipeline() {
         vkDestroyShaderModule(device_.device(), fragShaderModule, nullptr);
+		vkDestroyShaderModule(device_.device(), geomShaderModule, nullptr);
         vkDestroyShaderModule(device_.device(), vertShaderModule, nullptr);
         vkDestroyPipeline(device_.device(), graphicsPipeline, nullptr);
     }
@@ -37,18 +48,21 @@ namespace ve {
 
     void Pipeline::createGraphicsPipeline(
             const std::string &&vertFile,
+			const std::string &&geomFile,
             const std::string &&fragFile,
             const PipelineConfigInfo &configInfo) {
         auto vertShaderCode = readFile(vertFile);
+		auto geomShaderCode = readFile(geomFile);
         auto fragShaderCode = readFile(fragFile);
 
         assert(configInfo.pipelineLayout != nullptr && "Cannot create graphics pipeline: no pipelineLayout provided!");
         assert(configInfo.renderPass != nullptr && "Cannot create graphics pipeline: no renderPass provided!");
 
         createShaderModule(vertShaderCode, &vertShaderModule);
+		createShaderModule(geomShaderCode, &geomShaderModule);
         createShaderModule(fragShaderCode, &fragShaderModule);
 
-        VkPipelineShaderStageCreateInfo shaderStages[2];
+        VkPipelineShaderStageCreateInfo shaderStages[3];
         shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
         shaderStages[0].module = vertShaderModule;
@@ -57,13 +71,21 @@ namespace ve {
         shaderStages[0].pNext = nullptr;
         shaderStages[0].pSpecializationInfo = nullptr;
 
-        shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        shaderStages[1].module = fragShaderModule;
-        shaderStages[1].pName = "main";
-        shaderStages[1].flags = 0;
-        shaderStages[1].pNext = nullptr;
-        shaderStages[1].pSpecializationInfo = nullptr;
+		shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		shaderStages[1].stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+		shaderStages[1].module = geomShaderModule;
+		shaderStages[1].pName = "main";
+		shaderStages[1].flags = 0;
+		shaderStages[1].pNext = nullptr;
+		shaderStages[1].pSpecializationInfo = nullptr;
+
+		shaderStages[2].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		shaderStages[2].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		shaderStages[2].module = fragShaderModule;
+		shaderStages[2].pName = "main";
+		shaderStages[2].flags = 0;
+        shaderStages[2].pNext = nullptr;
+        shaderStages[2].pSpecializationInfo = nullptr;
 
         auto bindingDescriptions = Model::Vertex::getBindingDescriptions();
         auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
@@ -77,7 +99,7 @@ namespace ve {
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
+        pipelineInfo.stageCount = 3;
         pipelineInfo.pStages = shaderStages;
         pipelineInfo.pVertexInputState = &vertexInputInfo;
         pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;

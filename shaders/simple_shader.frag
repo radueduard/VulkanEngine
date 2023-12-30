@@ -1,9 +1,8 @@
 #version 450 core
 
-layout (location = 0) in vec3 color;
-layout (location = 1) in vec3 position;
-layout (location = 2) in vec3 normal;
-layout (location = 3) in vec2 texCoord;
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in vec2 texCoords;
 
 layout (location = 0) out vec4 fragColor;
 
@@ -42,7 +41,7 @@ void main()
 
     float att = 1.0 / dot(light.position - position, light.position - position);
 
-    vec4 texColor = texture(textureSampler, texCoord);
+    vec4 texColor = texture(textureSampler, texCoords);
 
     fragColor = vec4((ambient + diffuse + specular) * att * light.color, 1.0) * texColor;
 }

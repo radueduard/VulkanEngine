@@ -29,6 +29,7 @@ namespace ve {
         Pipeline(
             Device& device,
             const std::string&& vertFile,
+			const std::string&& geomFile,
             const std::string&& fragFile,
             const PipelineConfigInfo& configInfo);
         Pipeline(const Pipeline&) = delete;
@@ -40,12 +41,18 @@ namespace ve {
 
     private:
         static std::vector<char> readFile(const std::string& filename);
-        void createGraphicsPipeline(const std::string&& vertFile, const std::string&& fragFile, const PipelineConfigInfo& configInfo);
+        void createGraphicsPipeline(
+				const std::string&& vertFile,
+				const std::string&& geomFile,
+				const std::string&& fragFile,
+				const PipelineConfigInfo& configInfo);
         void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 
         Device& device_;
         VkPipeline graphicsPipeline;
+
         VkShaderModule vertShaderModule;
+		VkShaderModule geomShaderModule;
         VkShaderModule fragShaderModule;
     };
 

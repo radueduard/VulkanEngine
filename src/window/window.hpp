@@ -1,7 +1,7 @@
 #pragma once
 
 #define GLFW_INCLUDE_VULKAN
-#include <GLFW//glfw3.h>
+#include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
 #include <string>
@@ -29,7 +29,7 @@ namespace ve {
         std::string name;
         bool framebufferResized = false;
 
-        time currentTime{};
+        double currentTime = 0.0f;
         float deltaTime = 0.0f;
 
 

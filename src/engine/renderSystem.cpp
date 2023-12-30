@@ -85,6 +85,7 @@ namespace ve {
         pipeline = std::make_unique<Pipeline>(
                 device,
                 "../shaders/simple_shader.vert.spv",
+				"../shaders/simple_shader.geom.spv",
                 "../shaders/simple_shader.frag.spv",
                 pipelineConfig);
     }

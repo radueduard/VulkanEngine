@@ -17,10 +17,13 @@ endif()
 
 project(${NAME} VERSION 0.23.0)
 
+set(CMAKE_CXX_STANDARD 17)
+
+
 # 1. Set VULKAN_SDK_PATH in .env.cmake to target specific vulkan version
 if (DEFINED VULKAN_SDK_PATH)
-    set(Vulkan_INCLUDE_DIRS "${VULKAN_SDK_PATH}/Include") # 1.1 Make sure this include path is correct
-    set(Vulkan_LIBRARIES "${VULKAN_SDK_PATH}/Lib") # 1.2 Make sure lib path is correct
+    set(Vulkan_INCLUDE_DIRS "${VULKAN_SDK_PATH}/include") # 1.1 Make sure this include path is correct
+    set(Vulkan_LIBRARIES "${VULKAN_SDK_PATH}/lib") # 1.2 Make sure lib path is correct
     set(Vulkan_FOUND "True")
 else()
     find_package(Vulkan REQUIRED) # throws error if could not find Vulkan
@@ -32,6 +35,11 @@ if (NOT Vulkan_FOUND)
 else()
     message(STATUS "Using vulkan lib at: ${Vulkan_LIBRARIES}")
 endif()
+
+if(UNIX)
+    find_package(glfw3 REQUIRED)
+    find_package(assimp REQUIRED)
+endif ()
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
@@ -56,7 +64,7 @@ if (WIN32)
     target_include_directories(${PROJECT_NAME} PUBLIC
             ${PROJECT_SOURCE_DIR}/src
             ${Vulkan_INCLUDE_DIRS}
-            ${GLFW_INCLUDE_DIRS}
+            ${GLFW3_INCLUDE_DIRS}
             ${ASSIMP_INCLUDE_DIRS}
             ${STB_INCLUDE_DIRS}
     )
@@ -65,26 +73,28 @@ if (WIN32)
             ${Vulkan_LIBRARIES}
             ${GLFW_LIB}
             ${ASSIMP_LIB}
-            ${STB_LIB}
     )
 
     target_link_libraries(${PROJECT_NAME}
             vulkan-1
             glfw3
             libassimp
-
     )
 
 elseif (UNIX)
     message(STATUS "CREATING BUILD FOR UNIX")
+
     target_include_directories(${PROJECT_NAME} PUBLIC
             ${PROJECT_SOURCE_DIR}/src
+            ${Vulkan_INCLUDE_DIRS}
+            ${GLFW_INCLUDE_DIRS}
+            ${ASSIMP_INCLUDE_DIRS}
+            ${STB_INCLUDE_DIRS}
     )
     target_link_libraries(${PROJECT_NAME}
             ${Vulkan_LIBRARIES}
-            glfw
-            assimp
-            stb
+            /opt/homebrew/lib/libglfw.dylib
+            /opt/homebrew/lib/libassimp.dylib
     )
 endif()
 
@@ -107,6 +117,7 @@ find_program(GLSL_VALIDATOR glslangValidator HINTS
 # get all .vert and .frag files in shaders directory
 file(GLOB_RECURSE GLSL_SOURCE_FILES
         "${PROJECT_SOURCE_DIR}/shaders/*.frag"
+        "${PROJECT_SOURCE_DIR}/shaders/*.geom"
         "${PROJECT_SOURCE_DIR}/shaders/*.vert"
 )
 

@@ -33,8 +33,8 @@ namespace ve {
     }
 
     float Window::computeDeltaTime() {
-        time newTime = std::chrono::high_resolution_clock::now();
-        deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+        auto newTime = glfwGetTime();
+        deltaTime = currentTime - newTime;
         currentTime = newTime;
         return deltaTime;
     }
