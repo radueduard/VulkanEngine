@@ -5,16 +5,12 @@
 #include "gameObject.hpp"
 #include "pipeline.hpp"
 #include "frameInfo.hpp"
+#include "descriptors.hpp"
 
 #include <memory>
 #include <vector>
 
 namespace ve {
-
-    struct SimplePushConstantData {
-        glm::mat4 model{1.0};
-    };
-
     class RenderSystem {
     public:
         RenderSystem(Device &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
@@ -31,5 +27,7 @@ namespace ve {
         Device &device;
         std::unique_ptr<Pipeline> pipeline;
         VkPipelineLayout pipelineLayout;
+
+        std::unique_ptr<DescriptorSetLayout> renderSystemLayout;
     };
 }

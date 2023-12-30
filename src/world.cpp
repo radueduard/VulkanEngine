@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <iostream>
 #include "world.hpp"
 
 namespace ve {
@@ -21,15 +22,16 @@ namespace ve {
 
     // World
 
-    World::World(Window& window) : App(window) {}
+    World::World(Window& window) : App(window), gameObjectManager(device) {}
 
     void World::init() {
         auto apple = Model::loadModelsFromFile(device, "../models/apple.obj");
         auto sphere = Model::loadModelsFromFile(device, "../models/sphere.obj");
 
+        auto earth_texture = std::make_shared<Texture>(device, "../textures/earth.png");
 
         for (auto& model : apple) {
-            GameObject appleObject = GameObject::createGameObject();
+            GameObject& appleObject = gameObjectManager.createGameObject();
             appleObject.model = model;
             appleObject.transform.translate = glm::vec3(0.0f, 0.0f, 2.5f);
             appleObject.transform.scale = glm::vec3(.01f);
@@ -38,16 +40,20 @@ namespace ve {
         }
 
         for (auto& model : sphere) {
-            GameObject sphereObject = GameObject::createGameObject();
+            GameObject& sphereObject = gameObjectManager.createGameObject();
             sphereObject.model = model;
+            sphereObject.texture = earth_texture;
             sphereObject.transform.translate = glm::vec3(1, -5, 3);
 
             gameObjects.emplace(sphereObject.getId(), std::move(sphereObject));
         }
+
+        std::cout << "GameObjects created: " << gameObjects.size() << std::endl;
+
     }
 
     void World::update(float deltaTime) {
-
+        gameObjectManager.updateBuffer(renderer.getFrameIndex());
     }
 
     // InputController

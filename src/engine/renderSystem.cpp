@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <iostream>
+
 #include "renderSystem.hpp"
 
 namespace ve {
@@ -26,16 +27,24 @@ namespace ve {
                 nullptr);
 
         for (auto& [_, obj] : frameInfo.gameObjects) {
-            SimplePushConstantData push{};
-            push.model = obj.transform.model();
+            auto bufferInfo = obj.getBufferInfo(frameInfo.frameIndex);
+            auto textureInfo = obj.texture->getImageInfo();
 
-            vkCmdPushConstants(
-                    frameInfo.commandBuffer,
-                    pipelineLayout,
-                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                    0,
-                    sizeof(SimplePushConstantData),
-                    &push);
+            VkDescriptorSet gameObjectDescriptorSet;
+            DescriptorWriter(*renderSystemLayout, frameInfo.frameDescriptorPool)
+                .writeBuffer(0, &bufferInfo)
+                .writeImage(1, &textureInfo)
+                .build(gameObjectDescriptorSet);
+
+            vkCmdBindDescriptorSets(
+                frameInfo.commandBuffer,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                pipelineLayout,
+                1,
+                1,
+                &gameObjectDescriptorSet,
+                0,
+                nullptr);
 
             obj.model->bind(frameInfo.commandBuffer);
             obj.model->draw(frameInfo.commandBuffer);
@@ -43,19 +52,23 @@ namespace ve {
     }
 
     void RenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
-        VkPushConstantRange pushConstantRange{};
-        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-        pushConstantRange.size = sizeof(SimplePushConstantData);
-        pushConstantRange.offset = 0;
+        renderSystemLayout =
+                DescriptorSetLayout::Builder(device)
+                        .addBinding(0,VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,VK_SHADER_STAGE_VERTEX_BIT)
+                        .addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                        .build();
 
-        std::vector<VkDescriptorSetLayout> layouts = {globalSetLayout};
+        std::vector<VkDescriptorSetLayout> layouts = {
+                globalSetLayout,
+                renderSystemLayout->getDescriptorSetLayout()
+        };
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(layouts.size());
         pipelineLayoutInfo.pSetLayouts = layouts.data();
-        pipelineLayoutInfo.pushConstantRangeCount = 1;
-        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+        pipelineLayoutInfo.pushConstantRangeCount = 0;
+        pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
         if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");

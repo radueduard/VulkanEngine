@@ -8,20 +8,22 @@ layout (location = 3) in vec2 uv;
 layout (location = 0) out vec3 fragColor;
 layout (location = 1) out vec3 fragPosition;
 layout (location = 2) out vec3 fragNormal;
-
-layout(push_constant) uniform Push {
-    mat4 model;
-} push;
+layout (location = 3) out vec2 fragUV;
 
 layout (set = 0, binding = 0) uniform Camera {
     mat4 view;
     mat4 proj;
 } camera;
 
+layout(set = 1, binding = 0) uniform Object {
+    mat4 model;
+} object;
+
 void main()
 {
     fragColor = color;
-    fragPosition = (push.model * vec4(position, 1)).xyz;
-    fragNormal = normalize(mat3(push.model) * normal);
-    gl_Position = camera.proj * camera.view * push.model * vec4(position, 1.0);
+    fragPosition = (object.model * vec4(position, 1)).xyz;
+    fragNormal = normalize(mat3(object.model) * normal);
+    fragUV = uv;
+    gl_Position = camera.proj * camera.view * object.model * vec4(position, 1.0);
 }

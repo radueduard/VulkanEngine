@@ -58,18 +58,21 @@ if (WIN32)
             ${Vulkan_INCLUDE_DIRS}
             ${GLFW_INCLUDE_DIRS}
             ${ASSIMP_INCLUDE_DIRS}
+            ${STB_INCLUDE_DIRS}
     )
 
     target_link_directories(${PROJECT_NAME} PUBLIC
             ${Vulkan_LIBRARIES}
             ${GLFW_LIB}
             ${ASSIMP_LIB}
+            ${STB_LIB}
     )
 
     target_link_libraries(${PROJECT_NAME}
-            glfw3
             vulkan-1
+            glfw3
             libassimp
+
     )
 
 elseif (UNIX)
@@ -77,7 +80,12 @@ elseif (UNIX)
     target_include_directories(${PROJECT_NAME} PUBLIC
             ${PROJECT_SOURCE_DIR}/src
     )
-    target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME}
+            ${Vulkan_LIBRARIES}
+            glfw
+            assimp
+            stb
+    )
 endif()
 
 

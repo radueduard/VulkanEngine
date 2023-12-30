@@ -5,6 +5,7 @@
 
 #include "window/camera.hpp"
 #include "engine/gameObject.hpp"
+#include "engine/descriptors.hpp"
 
 namespace ve {
     struct FrameInfo {
@@ -13,6 +14,7 @@ namespace ve {
         VkCommandBuffer commandBuffer;
         Camera& camera;
         VkDescriptorSet globalDescriptorSet;
+        DescriptorPool &frameDescriptorPool;
         std::unordered_map<size_t, GameObject>& gameObjects;
     };
 }

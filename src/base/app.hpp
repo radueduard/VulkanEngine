@@ -17,10 +17,10 @@ namespace ve {
         Window& window;
     protected:
         Device device;
-    private:
         Renderer renderer;
     protected:
         std::unique_ptr<DescriptorPool> globalPool{};
+        std::vector<std::unique_ptr<DescriptorPool>> framePools;
         std::unordered_map<size_t, GameObject> gameObjects;
 
     public:

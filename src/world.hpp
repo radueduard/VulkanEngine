@@ -27,6 +27,8 @@ namespace ve {
         void onMouseBtnPress(int mouseX, int mouseY, int button, int mods) override;
         void onMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void onScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
+
+        GameObjectManager gameObjectManager;
     };
 
 }

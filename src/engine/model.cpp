@@ -134,7 +134,8 @@ namespace ve {
         uint32_t flags =
                 aiProcess_Triangulate |
                 aiProcess_GenSmoothNormals |
-                aiProcess_JoinIdenticalVertices;
+                aiProcess_JoinIdenticalVertices |
+                aiProcess_FlipUVs;
 
         const aiScene* scene = importer.ReadFile(filepath, flags);
 
@@ -154,7 +155,7 @@ namespace ve {
                 vertex.position = {pos.x, -pos.y, pos.z};
                 vertex.color = {1.0f, 1.0f, 1.0f};
                 vertex.normal = {normal.x, -normal.y, normal.z};
-                vertex.uv = {uv.x, uv.y};
+                vertex.uv = {-uv.x, uv.y};
 
                 builder.vertices.push_back(vertex);
             }

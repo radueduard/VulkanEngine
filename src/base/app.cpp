@@ -42,7 +42,18 @@ namespace ve {
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
+                .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, SwapChain::MAX_FRAMES_IN_FLIGHT)
                 .build();
+
+        framePools.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+        auto framePoolBuilder = DescriptorPool::Builder(device)
+                .setMaxSets(1000)
+                .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000)
+                .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000);
+
+        for (auto& framePool : framePools) {
+            framePool = framePoolBuilder.build();
+        }
     }
 
     App::~App() {}
@@ -94,10 +105,10 @@ namespace ve {
             float aspect = renderer.getAspectRatio();
             camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.0f);
 
-            update(window.getDeltaTime());
-
             if (auto commandBuffer = renderer.beginFrame()) {
                 int frameIndex = renderer.getFrameIndex();
+                framePools[frameIndex]->resetPool();
+                update(window.getDeltaTime());
 
                 FrameInfo frameInfo{
                         frameIndex,
@@ -105,6 +116,7 @@ namespace ve {
                         commandBuffer,
                         camera,
                         globalDescriptorSets[frameIndex],
+                        *framePools[frameIndex],
                         gameObjects};
 
                 CameraTransformations cameraTransformations {
@@ -128,6 +140,9 @@ namespace ve {
                 uniformBuffers[frameIndex]->writeToIndex(&cameraTransformations, 0);
                 uniformBuffers[frameIndex]->writeToIndex(&materialProperties, 1);
                 uniformBuffers[frameIndex]->writeToIndex(&lightProperties, 2);
+
+
+
                 uniformBuffers[frameIndex]->flushIndex(0);
                 uniformBuffers[frameIndex]->flushIndex(1);
                 uniformBuffers[frameIndex]->flushIndex(2);
