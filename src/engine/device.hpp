@@ -72,6 +72,9 @@ namespace ve {
 
         VkPhysicalDeviceProperties properties;
 
+        void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,
+                                   uint32_t mipLevels, uint32_t layerCount);
+
     private:
         void createInstance();
         void setupDebugMessenger();
@@ -103,6 +106,7 @@ namespace ve {
 
         const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
         const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
     };
 
 }  // namespace lve
