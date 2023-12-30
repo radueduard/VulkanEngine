@@ -4,8 +4,9 @@
 #include "window/window.hpp"
 #include "engine/gameObject.hpp"
 #include "engine/renderer.hpp"
+#include <engine/descriptors.hpp>
 
-
+#include <unordered_map>
 #include <memory>
 #include <vector>
 
@@ -19,7 +20,8 @@ namespace ve {
     private:
         Renderer renderer;
     protected:
-        std::vector<GameObject> gameObjects;
+        std::unique_ptr<DescriptorPool> globalPool{};
+        std::unordered_map<size_t, GameObject> gameObjects;
 
     public:
         explicit App(Window & window);

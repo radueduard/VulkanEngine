@@ -4,6 +4,7 @@
 #include "device.hpp"
 #include "gameObject.hpp"
 #include "pipeline.hpp"
+#include "frameInfo.hpp"
 
 #include <memory>
 #include <vector>
@@ -12,21 +13,19 @@ namespace ve {
 
     struct SimplePushConstantData {
         glm::mat4 model{1.0};
-        glm::mat4 view{1.0};
-        glm::mat4 proj{1.0};
     };
 
     class RenderSystem {
     public:
-        RenderSystem(Device &device, VkRenderPass renderPass);
+        RenderSystem(Device &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
         RenderSystem(const RenderSystem &) = delete;
         RenderSystem &operator=(const RenderSystem &) = delete;
         ~RenderSystem();
 
-        void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject> &gameObjects, const Camera &camera);
+        void renderGameObjects(const FrameInfo&);
 
     private:
-        void createPipelineLayout();
+        void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void createPipeline(VkRenderPass renderPass);
 
         Device &device;

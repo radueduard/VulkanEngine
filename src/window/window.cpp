@@ -127,7 +127,7 @@ namespace ve {
     }
 
     bool Window::mouseHold(int button) {
-        return inputStates.mouseButtons.mouseButtonStates & (1 << button) != 0;
+        return (inputStates.mouseButtons.mouseButtonStates & (1 << button)) != 0;
     }
 
     bool Window::keyHold(int key) {
@@ -140,8 +140,8 @@ namespace ve {
 
     void Window::resizeCallback(int width, int height) {
         framebufferResized = true;
-        width = width;
-        height = height;
+        this->width = width;
+        this->height = height;
     }
 
     void Window::keyCallback(int key, int scancode, int action, int mods) {

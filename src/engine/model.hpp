@@ -1,12 +1,14 @@
 #pragma once
 
 #include "engine/device.hpp"
+#include "buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <memory>
 
 namespace ve {
     class Model {
@@ -25,7 +27,7 @@ namespace ve {
             std::vector<Vertex> vertices{};
             std::vector<uint32_t> indices{};
 
-            Model build(Device& device);
+            std::shared_ptr<Model> build(Device& device);
         };
 
         Model(Device& device, const Model::Builder& builder);
@@ -36,7 +38,7 @@ namespace ve {
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer) const;
 
-        static std::vector<Model> loadModelsFromFile(Device& device, const std::string& filepath);
+        static std::vector<std::shared_ptr<Model>> loadModelsFromFile(Device& device, const std::string& filepath);
 
     private:
         void createVertexBuffers(const std::vector<Vertex>& vertices);
@@ -44,14 +46,12 @@ namespace ve {
 
         Device& device;
 
-        VkBuffer vertexBuffer;
-        VkDeviceMemory vertexBufferMemory;
+        std::unique_ptr<Buffer> vertexBuffer;
         uint32_t vertexCount;
 
         bool hasIndexBuffer = false;
 
-        VkBuffer indexBuffer;
-        VkDeviceMemory indexBufferMemory;
+        std::unique_ptr<Buffer> indexBuffer;
         uint32_t indexCount;
     };
 }

@@ -33,6 +33,8 @@ namespace ve {
 
         void update();
 
+        glm::vec3 getPosition() const { return position; }
+
     private:
         glm::mat4 projectionMatrix{1.0f};
         glm::mat4 viewMatrix{1.0f};

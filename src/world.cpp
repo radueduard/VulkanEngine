@@ -1,8 +1,4 @@
-//
-// Created by radue on 12/27/2023.
-//
-
-#include <iostream>
+#include <stdexcept>
 #include "world.hpp"
 
 namespace ve {
@@ -25,48 +21,29 @@ namespace ve {
 
     // World
 
-    World::World(Window& window) : App(window) {
-        std::cout << "World created" << std::endl;
-    }
-
-    std::unique_ptr<Model> createCubeModel(Device &device, glm::vec3 offset) {
-        Model::Builder builder{};
-
-        builder.vertices = {
-                {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 0.0f}, {}, {0.0f, 0.0f}},
-                {{1.0f, -1.0f, -1.0f},  {1.0f, 0.0f, 0.0f}, {}, {1.0f, 0.0f}},
-                {{1.0f, 1.0f, -1.0f},   {1.0f, 1.0f, 0.0f}, {}, {1.0f, 1.0f}},
-                {{-1.0f, 1.0f, -1.0f},  {0.0f, 1.0f, 0.0f}, {}, {0.0f, 1.0f}},
-                {{-1.0f, -1.0f, 1.0f},  {0.0f, 0.0f, 1.0f}, {}, {0.0f, 0.0f}},
-                {{1.0f, -1.0f, 1.0f},   {1.0f, 0.0f, 1.0f}, {}, {1.0f, 0.0f}},
-                {{1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f}, {}, {1.0f, 1.0f}},
-                {{-1.0f, 1.0f, 1.0f},   {0.0f, 1.0f, 1.0f}, {}, {0.0f, 1.0f}},
-        };
-
-        builder.indices = {
-                0, 1, 2, 2, 3, 0, // front
-                4, 5, 6, 6, 7, 4, // back
-                4, 5, 1, 1, 0, 4, // bottom
-                3, 2, 6, 6, 7, 3, // top
-                1, 2, 6, 6, 5, 1, // right
-                0, 3, 7, 7, 4, 0, // left
-        };
-
-        return std::make_unique<Model>(device, builder);
-    }
+    World::World(Window& window) : App(window) {}
 
     void World::init() {
-        std::shared_ptr<Model> cubeModel = createCubeModel(device, glm::vec3(0.0f));
+        auto apple = Model::loadModelsFromFile(device, "../models/apple.obj");
+        auto sphere = Model::loadModelsFromFile(device, "../models/sphere.obj");
 
-        GameObject cubeObject = GameObject::createGameObject();
-        cubeObject.model = cubeModel;
-        cubeObject.transform.translate = glm::vec3(0.0f, 0.0f, 2.5f);
-        cubeObject.transform.scale = glm::vec3(.5f);
 
-        gameObjects.push_back(std::move(cubeObject));
+        for (auto& model : apple) {
+            GameObject appleObject = GameObject::createGameObject();
+            appleObject.model = model;
+            appleObject.transform.translate = glm::vec3(0.0f, 0.0f, 2.5f);
+            appleObject.transform.scale = glm::vec3(.01f);
 
-        auto models = Model::loadModelsFromFile(device, "models/apple.obj");
+            gameObjects.emplace(appleObject.getId(), std::move(appleObject));
+        }
 
+        for (auto& model : sphere) {
+            GameObject sphereObject = GameObject::createGameObject();
+            sphereObject.model = model;
+            sphereObject.transform.translate = glm::vec3(1, -5, 3);
+
+            gameObjects.emplace(sphereObject.getId(), std::move(sphereObject));
+        }
     }
 
     void World::update(float deltaTime) {

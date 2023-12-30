@@ -8,6 +8,8 @@
 #include <iostream>
 
 #include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 namespace ve {
 
@@ -16,22 +18,14 @@ namespace ve {
         createIndexBuffers(builder.indices);
     }
 
-    Model::~Model() {
-        vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
-        vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
-
-        if (hasIndexBuffer) {
-            vkDestroyBuffer(device.device(), indexBuffer, nullptr);
-            vkFreeMemory(device.device(), indexBufferMemory, nullptr);
-        }
-    }
+    Model::~Model() {}
 
     void Model::bind(VkCommandBuffer commandBuffer) {
-        VkBuffer buffers[] = {vertexBuffer};
+        VkBuffer buffers[] = {vertexBuffer->getBuffer()};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
         if (hasIndexBuffer) {
-            vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
         }
     }
 
@@ -46,69 +40,54 @@ namespace ve {
     void Model::createVertexBuffers(const std::vector<Vertex> &vertices) {
         vertexCount = static_cast<uint32_t>(vertices.size());
         assert(vertexCount >= 3 && "Vertex count must be at least 3");
-
         VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
+        uint32_t vertexSize = sizeof(Vertex);
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-
-        device.createBuffer(
-                bufferSize,
+        Buffer stagingBuffer(
+                device,
+                vertexSize,
+                vertexCount,
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                stagingBuffer,
-                stagingBufferMemory);
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        void* data;
-        vkMapMemory(device.device(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, vertices.data(), (size_t) bufferSize);
-        vkUnmapMemory(device.device(), stagingBufferMemory);
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer((void *)vertices.data());
 
-        device.createBuffer(
-                bufferSize,
+        vertexBuffer = std::make_unique<Buffer>(
+                device,
+                vertexSize,
+                vertexCount,
                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                vertexBuffer,
-                vertexBufferMemory);
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        device.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
-
-        vkDestroyBuffer(device.device(), stagingBuffer, nullptr);
-        vkFreeMemory(device.device(), stagingBufferMemory, nullptr);
+        device.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
     }
 
     void Model::createIndexBuffers(const std::vector<uint32_t> &indices) {
         indexCount = static_cast<uint32_t>(indices.size());
         hasIndexBuffer = indexCount > 0;
         if (!hasIndexBuffer) return;
-
         VkDeviceSize bufferSize = sizeof(uint32_t) * indexCount;
+        uint32_t indexSize = sizeof(uint32_t);
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        device.createBuffer(
-                bufferSize,
+        Buffer stagingBuffer(
+                device,
+                indexSize,
+                indexCount,
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                stagingBuffer,
-                stagingBufferMemory);
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        void* data;
-        vkMapMemory(device.device(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, indices.data(), (size_t) bufferSize);
-        vkUnmapMemory(device.device(), stagingBufferMemory);
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer((void *)indices.data());
 
-        device.createBuffer(
-                bufferSize,
+        indexBuffer = std::make_unique<Buffer>(
+                device,
+                indexSize,
+                indexCount,
                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                indexBuffer,
-                indexBufferMemory);
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        device.copyBuffer(stagingBuffer, indexBuffer, bufferSize);
-
-        vkDestroyBuffer(device.device(), stagingBuffer, nullptr);
-        vkFreeMemory(device.device(), stagingBufferMemory, nullptr);
+        device.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
     }
 
     std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptions() {
@@ -144,24 +123,52 @@ namespace ve {
         return attributeDescriptions;
     }
 
-    Model Model::Builder::build(Device &device) {
-        return Model(device, *this);
+    std::shared_ptr<Model> Model::Builder::build(Device &device) {
+        return std::make_shared<Model>(device, *this);
     }
 
-    std::vector<Model> Model::loadModelsFromFile(Device &device, const std::string &filepath) {
+    std::vector<std::shared_ptr<Model>> Model::loadModelsFromFile(Device &device, const std::string &filepath) {
 
         Assimp::Importer importer = Assimp::Importer();
-//
-//        uint32_t flags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals;
-//
-//        const aiScene* scene = importer.ReadFile(filepath, flags);
-//
-//        std::cout << "Loaded model: " << filepath << std::endl;
-//        std::cout << "Number of meshes: " << scene->mMeshes << std::endl;
 
-        return std::vector<Model>();
+        uint32_t flags =
+                aiProcess_Triangulate |
+                aiProcess_GenSmoothNormals |
+                aiProcess_JoinIdenticalVertices;
+
+        const aiScene* scene = importer.ReadFile(filepath, flags);
+
+        std::vector<std::shared_ptr<Model>> models;
+
+        for (int i = 0; i < scene->mNumMeshes; ++i) {
+            aiMesh* mesh = scene->mMeshes[i];
+
+            Model::Builder builder{};
+
+            for (int j = 0; j < mesh->mNumVertices; ++j) {
+                aiVector3D pos = mesh->mVertices[j];
+                aiVector3D normal = mesh->mNormals[j];
+                aiVector3D uv = mesh->mTextureCoords[0][j];
+
+                Vertex vertex{};
+                vertex.position = {pos.x, -pos.y, pos.z};
+                vertex.color = {1.0f, 1.0f, 1.0f};
+                vertex.normal = {normal.x, -normal.y, normal.z};
+                vertex.uv = {uv.x, uv.y};
+
+                builder.vertices.push_back(vertex);
+            }
+
+            for (int j = 0; j < mesh->mNumFaces; ++j) {
+                aiFace face = mesh->mFaces[j];
+                for (int k = 0; k < face.mNumIndices; ++k) {
+                    builder.indices.push_back(face.mIndices[k]);
+                }
+            }
+
+            std::shared_ptr<Model> model = builder.build(device);
+            models.push_back(model);
+        }
+        return models;
     }
-
-
-
 }
