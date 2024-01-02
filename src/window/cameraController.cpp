@@ -8,12 +8,12 @@ namespace ve {
 
         if (window.getSpecialKeyState() & GLFW_MOD_SHIFT) deltaTime *= 2;
 
-        if (window.keyHold(GLFW_KEY_W)) camera.moveForward(deltaTime);
-        if (window.keyHold(GLFW_KEY_S)) camera.moveForward(-deltaTime);
-        if (window.keyHold(GLFW_KEY_A)) camera.moveRight(-deltaTime);
-        if (window.keyHold(GLFW_KEY_D)) camera.moveRight(deltaTime);
-        if (window.keyHold(GLFW_KEY_Q)) camera.moveUp(-deltaTime);
-        if (window.keyHold(GLFW_KEY_E)) camera.moveUp(deltaTime);
+        if (window.keyHold(GLFW_KEY_W)) camera.moveForward(-deltaTime);
+        if (window.keyHold(GLFW_KEY_S)) camera.moveForward(deltaTime);
+        if (window.keyHold(GLFW_KEY_A)) camera.moveRight(deltaTime);
+        if (window.keyHold(GLFW_KEY_D)) camera.moveRight(-deltaTime);
+        if (window.keyHold(GLFW_KEY_Q)) camera.moveUp(deltaTime);
+        if (window.keyHold(GLFW_KEY_E)) camera.moveUp(-deltaTime);
 
         if (window.keyHold(GLFW_KEY_KP_MULTIPLY)) camera.updateSpeed(.2f);
         if (window.keyHold(GLFW_KEY_KP_DIVIDE)) camera.updateSpeed(-.2f);
@@ -38,13 +38,13 @@ namespace ve {
     }
 
     void CameraController::onMouseBtnPress(int mouseX, int mouseY, int button, int mods) {
-        if ((button & GLFW_MOUSE_BUTTON_RIGHT) == GLFW_MOUSE_BUTTON_RIGHT) {
+        if ((button | 1 << GLFW_MOUSE_BUTTON_RIGHT) == button) {
             window.disablePointer();
         }
     }
 
     void CameraController::onMouseBtnRelease(int mouseX, int mouseY, int button, int mods) {
-        if ((button & GLFW_MOUSE_BUTTON_RIGHT) == GLFW_MOUSE_BUTTON_RIGHT) {
+        if ((button | 1 << GLFW_MOUSE_BUTTON_RIGHT) == button) {
             window.enablePointer();
         }
     }
